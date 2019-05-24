@@ -4,7 +4,7 @@ library(GGally)
 library(e1071)
 
 ### Loading data
-load("cchs11.RData")
+load("cchs12.RData")
 
 ### Getting into analytic data set
 cchs11.new <- cchs11[, c("ADMA_RNO", "CCCA_121", "CCCA_051", "CCCA_05A", "DHHAGAGE", "DHHA_SEX", 
@@ -463,26 +463,6 @@ levels(cchs11.new$GENA_07)
 table(cchs11.new$GENA_07)
 
 ###############################################
-## GENA_07
-unique(cchs11.new$GENA_07)
-str(cchs11.new$GENA_07)
-levels(cchs11.new$GENA_07)
-table(cchs11.new$GENA_07)
-
-## Removing missing values
-na.GENA_07 <- which((cchs11.new$GENA_07 %in% c("NOT STATED", "DON'T KNOW", "REFUSAL"))) 
-cchs11.new <- cchs11.new[-na.GENA_07, ]
-
-## Dropping levels
-cchs11.new$GENA_07 <- droplevels(cchs11.new$GENA_07)
-
-## LOoking at data again
-unique(cchs11.new$GENA_07)
-str(cchs11.new$GENA_07)
-levels(cchs11.new$GENA_07)
-table(cchs11.new$GENA_07)
-
-###############################################
 ## GEOAGPRV
 unique(cchs11.new$GEOAGPRV)
 str(cchs11.new$GEOAGPRV)
@@ -537,4 +517,6 @@ cchs11.new$veggies <- factor(cchs11.new$veggies, levels = c("low", "medium", "hi
 cchs11.new$Province <- factor(cchs11.new$Province, levels = c("South", "North"),
                               labels = c("South", "North"))
 
+## Writing into csv
+write.csv(cchs11.new, "cchs11_completeCases.csv", row.names = F)
 

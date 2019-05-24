@@ -507,8 +507,8 @@ table(cchs11.new$WTSAM, exclude = NULL)
 cchs11.new$WTSAM <- cchs11.new$WTSAM/3
 
 ################################################
-### Looking at data set ###
-###########################
+### Looking at data set ########################
+################################################
 
 ## structure
 str(cchs11.new)
@@ -525,7 +525,42 @@ cchs11.new$Province <- factor(cchs11.new$Province, levels = c("South", "North"),
 
 
 cchs11_full <- cchs11.new
-write.csv(cchs11_full, file = "cchs11_full", row.names = F)
+write.csv(cchs11_full, file = "cchs11_full.csv", row.names = F)
+
+
+############# Count of NAs ####################
+
+df_test <- data.frame(table(cchs11_full$PACADPAI, exclude = NULL))
+df_test
+
+##############
+
+
+##############################################
+
+
+cchs11_full[cchs11_full == "<NA>"] <- NA
+
+na_vals <- which(!(cchs11_full$PACADPAI %in% c("ACTIVE", "INACTIVE", "MODERATE")))
+
+cchs11_full$PACADPAI[na_vals] <- NA
+
+
+
+unique(cchs11_full$PACADPAI)[4]
+
+str(cchs11_full$INCAGHH)
+unique(cchs11_full$INCAGHH)
+as.vector(cchs11_full$INCAGHH)
+make.true.NA <- function(x) if(is.character(x)||is.factor(x)){
+  is.na(x) <- x=="NA"; x} else {
+    x}
+
+make.true.NA <- function(x) if(is.character(x)||is.factor(x)){
+  is.na(x) <- x %in% c("NA", "<NA>"); x} else {
+    x}
+
+cchs11_full[] <- lapply(cchs11_full, make.true.NA)
 
 ## Example
 data(africa)
@@ -539,10 +574,100 @@ cchs11_subset <- cchs11_full[sample(1:88961, 500),]
 str(cchs11_subset)
 
 ## Subsetting variables
-cchs11_subset2 <- cchs11_subset[, c(2, 3, 12, 20, 23)]
+cchs11_subset2 <- cchs11_subset[, c(1, 12, 20)]
+str(cchs11_subset2$PACADPAI)
+cchs11_subset2[1, 2] <- NA
+
+cchs11_subset2$PACADPAI <- as.vector(as.character(cchs11_subset2$PACADPAI))
 str(cchs11_subset2)
+table
 
 ## Running amelia algorithm on this subset
-cchs11.imputed <- amelia(cchs11_subset2, cs = 1, m = 1, boot.type = "none")
+cchs11.imputed <- amelia(cchs11_subset2, cs = 2, m = 1, boot.type = "none")
 
 ##
+
+cchs11_subset2$PACADPAI <- as.character(cchs11_subset2$PACADPAI)
+
+
+str(cchs11_subset2)
+
+cchs11.imputed <- amelia(cchs11_subset2, noms = 2, m = 1, boot.type = "none")
+cchs11.imputed$imputations$imp1
+
+## Doing on full subset
+cchs11.imputed <- amelia(cchs11_subset[,-1], noms = c(1:15, 20, 21, 22), m = 1, boot.type = "none")
+
+str(cchs11_subset)
+
+
+## Another subset
+cchs11_subset3 <- cchs11_subset[, c(1, 14, 20)]
+cchs11.imputed2 <- amelia(cchs11_subset3, noms = c(13), m = 1, boot.type = "none")
+cchs11_subset3$SMKADSTY
+
+
+#### Alternative
+#library(dlsem)
+#install.packages("dlsem", dependencies = T)
+
+### Another alternative
+#library(mvdalab)
+
+#imputeEM(cchs11_subset2)
+
+#imputeEM(cchs11_subset)
+
+#cchs11_subset[1,]
+
+### Another alternative
+#library(TestDataImputation)
+
+#EMimpute(cchs11_subset2)
+
+##################################
+cchs11.imputed <- amelia(cchs11_subset[,-1], noms = c(1:15, 20, 21, 22), m = 1, boot.type = "none")
+
+##################################
+
+## Subsetting data
+cchs11_subset <- cchs11_full[sample(1:88961, 500), -1]
+str(cchs11_subset)
+
+## Packages
+#Loading the mice package
+library(mice)
+
+#Loading the following package for looking at the missing values
+library(VIM)
+library(lattice)
+
+md.pattern(cchs11_subset)
+
+## Plotting
+hanes_miss = aggr(cchs11_full[1:10000, ], 
+                  col=mdc(1:2), 
+                  numbers=TRUE, 
+                  sortVars=TRUE, 
+                  labels=names(nhanes),
+                  cex.axis=.7, 
+                  gap=3, 
+                  ylab=c("Proportion of missingness","Missingness Pattern"))
+
+
+### Imputing
+mice_imputes = mice(cchs11_subset, m=5, maxit = 40)
+
+## Methods used
+mice_imputes$method
+
+### Doing the imputation
+Imputed_data=complete(mice_imputes, 5)
+Imputed_data <- data.frame(Imputed_data)
+
+table(Imputed_data$PACADPAI)
+table(cchs11_subset$PACADPAI)
+
+
+
+### 
